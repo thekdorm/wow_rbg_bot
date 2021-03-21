@@ -68,32 +68,42 @@ class Group:
         for role in self.comp:
             self._total += len(self.comp[role]['players'])
 
-    def add_member(self, member: str, role: str):
+    def add_member(self, member: str, role: str) -> int:
         """Function to add a member to group
 
         Args:
             member (str): Member to add
             role (str): Role that member will play
+
+        Returns:
+            int: 0 if role throws off comp, 1 if success
         """
 
         # if adding this player conflicts with desired comp, handle here
         if len(self.comp[role]['players']) + 1 > self.comp[role]['number']:
-            print(f'{role} already at max capacity!')  # placeholder for now
+            return 0
         
         # else, add the player to the comp list
         else:
             self.comp[role]['players'].append(member)
+            return 1
 
-    def remove_member(self, member: str):
+    def remove_member(self, member: str) -> int:
         """Function to remove a member from group
 
         Args:
             member (str): Member to remove
+
+        Returns:
+            int: 0 on error, 1 on success
         """
 
         for role in self.comp:
             if member in self.comp[role]['players']:
                 self.comp[role]['players'].pop(self.comp[role]['players'].index(member)) 
+                return 1
+        
+        return 0
 
 
 class GroupManager:

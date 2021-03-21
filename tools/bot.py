@@ -42,8 +42,6 @@ async def create_group(ctx, name: str, role: str, group_type: str=None, comp: st
 async def delete_group(ctx, group_name: str, owner: str=None):
     """Remove a group from the GroupManager
 
-    First check to see if the message author has permission to remove the specified group
-
     Args:
         group_name ([str]): Name of group to delete
         owner ([str], optional): Owner of group to delete; if omitted, defaults to message author
@@ -51,7 +49,7 @@ async def delete_group(ctx, group_name: str, owner: str=None):
 
     if owner and owner != ctx.message.author.name:
         if ctx.message.author.id != bot.owner_id:
-            response = "Sorry, you don't have permission to delete that group. Nerd."
+            await ctx.send("Sorry, you don't have permission to delete that group. Nerd.")
     else:
         owner = ctx.message.author.name
 
@@ -76,10 +74,75 @@ async def display_group(ctx, owner: str, group_name: str=None, option: str=None)
     groups = bg_bot.manager.get_groups(owner, group_name)
 
     if len(groups) == 0:
-        response = "No groups exist that match those criteria."
+        response = "No groups exist that match the input criteria."
     elif group_name and option:
         response = [getattr(group, option) for group in groups]
     else:
         response = [group.name for group in groups]
 
+    await ctx.send(response)
+
+
+@bg_bot.command(name='add_player')
+async def add_player(ctx, group_name: str, player_name: str, player_role: str, owner: str=None):
+    """Add a player to an existing group
+
+    Args:
+        group_name (str): Name of group
+        player_name (str): Name of player to add to group
+        player_role (str): <tank | healer | dps>
+        owner (str): Leader of group
+    """
+
+    if owner and owner != ctx.message.author.name:
+        if ctx.message.author.id != bot.owner_id:
+            await ctx.send("Sorry, you don't have permission to modify that group. Nerd.")
+    else:
+        owner = ctx.message.author.name
+    
+    if owner in bg_bot.manager.groups:
+        for group in bg_bot.manager.groups[owner]['groups']:
+            if group.name == group_name:
+                if group.add_member(player_name, player_role):
+                    response = f'Added {player_name} to {group_name} successfully!'
+                    break
+                else:
+                    response = "Error adding player! Specified role is most likely already full for this group."
+                    break
+
+    else:
+        response = "No groups exist that match the input criteria."
+    
+    await ctx.send(response)
+
+
+@bg_bot.command(name='remove_player')
+async def remove_player(ctx, group_name: str, player_name: str, owner: str=None):
+    """Remove a player from an existing group
+
+    Args:
+        group_name (str): Name of group
+        player_name (str): Name of player to add to group
+        owner (str): Leader of group
+    """
+
+    if owner and owner != ctx.message.author.name:
+        if ctx.message.author.id != bot.owner_id:
+            await ctx.send("Sorry, you don't have permission to modify that group. Nerd.")
+    else:
+        owner = ctx.message.author.name
+    
+    if owner in bg_bot.manager.groups:
+        for group in bg_bot.manager.groups[owner]['groups']:
+            if group.name == group_name:
+                if group.remove_member(player_name):
+                    response = f'Removed {player_name} from {group_name} successfully!'
+                    break
+                else:
+                    response = "Error removing player!"
+                    break
+
+    else:
+        response = "No groups exist that match the input criteria."
+    
     await ctx.send(response)
