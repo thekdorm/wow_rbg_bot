@@ -2,6 +2,7 @@ from typing import List
 
 
 class Group:
+    # TODO add open/closed permission for people to invite themselves to a group
 
     def __init__(self, owner: str, name: str, my_role: str, group_type: str=None, 
                     rating: int=None, scheduled_time: str=None, composition: List[int]=None):
@@ -19,19 +20,22 @@ class Group:
             composition (List[int], optional): Desired composition for group. Defaults to None.
         """
         
-        self.owner, self.name, self.group_type, self._total = owner, name, group_type, 0
+        self.owner, self.name, self.group_type, self._total = owner, name, group_type.lower(), 0
         
-        if group_type == 'arena2':
-            self._max = 2
-        elif group_type == 'arena3':
-            self._max = 3
-        elif group_type == 'rbg':
-            self._max = 10
+        if self.group_type == 'arena2':
+            self._max, self.group_type = 2, "Arena 2v2"
+        elif self.group_type == 'arena3':
+            self._max, self.group_type = 3, "Arena 3v3" 
+        elif self.group_type == 'rbg':
+            self._max, self.group_type = 10, "RBG"
         else:
             self._max = 20  # for raids? TODO flesh this out later
 
         if rating:
             self.rating = rating
+        else:
+            self.rating = "YOLO"
+
         if scheduled_time:
             self.time = scheduled_time
         if composition:

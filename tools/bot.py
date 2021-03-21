@@ -30,7 +30,9 @@ async def create_group(ctx, name: str, role: str, group_type: str=None, comp: st
     """
 
     owner = ctx.message.author.name
-    comp = [int(i) for i in comp.split()]  # convert string input to array
+    
+    if comp:
+        comp = [int(i) for i in comp.split()]  # convert string input to array
 
     new_group = Group(owner, name, role, group_type, rating, time, comp)
     bg_bot.manager.add_group(owner, new_group)
@@ -68,19 +70,25 @@ async def display_group(ctx, owner: str, group_name: str=None, option: str=None)
     Args:
         owner ([str]): Owner of groups to display
         group_name ([str], optional): Name of group to display; if omitted, display all groups of specified owner
-        option ([str]), optional): Specify an attribute of Group class to display
+        *deprecated option ([str]), optional): Specify an attribute of Group class to display
     """
 
     groups = bg_bot.manager.get_groups(owner, group_name)
 
     if len(groups) == 0:
-        response = "No groups exist that match the input criteria."
-    elif group_name and option:
-        response = [getattr(group, option) for group in groups]
+        await ctx.send("No groups exist that match the input criteria.")
     else:
-        response = [group.name for group in groups]
+        embed = discord.Embed(title="Open Groups")
+        for group in groups:
+            if group.comp:
+                open_spots = [group.comp[role]['number'] - len(group.comp[role]['players']) for role in group.comp]
+                availability = f'Open Spots\nTanks: {open_spots[0]}, Healers: {open_spots[1]}, DPS: {open_spots[2]}'
+            else:
+                availability = f'No specified comp, {group._max - group._total} spots left'
+            
+            embed.add_field(name=f'{group.name} by {group.owner}: {group.rating} {group.group_type}', value=availability)
 
-    await ctx.send(response)
+    await ctx.send(embed=embed)
 
 
 @bg_bot.command(name='add_player')
